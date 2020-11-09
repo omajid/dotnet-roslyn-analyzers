@@ -3,10 +3,16 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <!--
-      PackageId is used by Restore. If we set it to Text.Analyzers,
-      Restore would conclude that there is a cyclic dependency between us and the Text.Analyzers nuget package.
+      PackageId is used by Restore. If we set it to Microsoft.CodeAnalysis.Analyzers,
+      Restore would conclude that there is a cyclic dependency between Microsoft.CodeAnalysis and
+      Microsoft.CodeAnalysis.Analyzers.
+
+      Additionally, for Unix, convert the paths to Windows-style paths. The project.assets.json
+      file uses '/' as a delimiter between the package id and the version. If keep the
+      forward-slashes in the path on Unix, the code parsing projects.assets.json gets confused
+      about where the package name ends and where the version begins.
     -->
-    <PackageId>*$(MSBuildProjectFullPath)*</PackageId>
+    <PackageId>*$(MSBuildProjectFullPath.Replace('/', '\\'))*</PackageId>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Text.CSharp.Analyzers" />
