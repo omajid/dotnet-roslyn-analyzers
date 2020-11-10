@@ -46,4 +46,14 @@
   <ItemGroup>
     <AdditionalFiles Include="$(MSBuildThisFileDirectory).editorconfig" />
   </ItemGroup>
+
+  <PropertyGroup>
+    <ArtifactsDir>$([MSBuild]::NormalizeDirectory('$(RepoRoot)', 'artifacts'))</ArtifactsDir>
+    <ArtifactsBinDir>$([MSBuild]::NormalizeDirectory('$(ArtifactsDir)', 'bin'))</ArtifactsBinDir>
+    <CustomTasksOutputPath>$([MSBuild]::NormalizeDirectory('$(ArtifactsBinDir)', 'tasks'))</CustomTasksOutputPath>
+    <CustomTasksAssemblyPath Condition="'$(MSBuildRuntimeType)' == 'Core'">$([MSBuild]::NormalizePath('$(InstallerTasksOutputPath)', 'Debug', 'netstandard2.0', 'tasks.dll'))</CustomTasksAssemblyPath>
+    <CustomTasksAssemblyPath Condition="'$(MSBuildRuntimeType)' != 'Core'">$([MSBuild]::NormalizePath('$(InstallerTasksOutputPath)', 'Debug', 'net461', 'tasks.dll'))</CustomTasksAssemblyPath>
+  </PropertyGroup>
+
+
 </Project>

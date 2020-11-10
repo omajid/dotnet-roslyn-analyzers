@@ -90,27 +90,40 @@
       <AnalyzerRulesetAssembly Update="@(AnalyzerRulesetAssembly)" Condition="'%(AnalyzerRulesetAssembly.TargetFramework)' == ''" TargetFramework="$(TargetFramework)" />
     </ItemGroup>
 
+    <PropertyGroup>
+      <DotNetExecutable Condition="'$(OS)' == 'Windows_NT'">$(DotNetRoot)\dotnet.exe</DotNetExecutable>
+      <DotNetExecutable Condition="'$(DotNetExecutable)' == ''">$(DotNetRoot)/dotnet</DotNetExecutable>
+    </PropertyGroup>
+
     <!-- Only run validate only in CI builds. Running them in local builds will prevent refreshing auto-generated files. -->
     <Exec Condition="'$(ContinuousIntegrationBuild)' == 'true'"
-          Command='"$(DotNetRoot)dotnet.exe" "$(_GenerateDocumentationAndConfigFilesPath)" "-validateOnly:true" "$(_GeneratedRulesetsDir)" "$(_GeneratedEditorconfigsDir)" "$(ArtifactsBinDir)\" "$(Configuration)" "%(AnalyzerRulesetAssembly.TargetFramework)" "@(AnalyzerRulesetAssembly)" "$(PackagePropsFileDir)" "$(PackagePropsFileName)" "$(DisableNETAnalyzersPackagePropsFileName)" "$(AnalyzerSarifFileDir)" "$(AnalyzerDocumentationFileName)" "$(AnalyzerSarifFileDir)" "$(AnalyzerSarifFileName)" "$(VersionPrefix)" $(NuspecPackageId) $(ContainsPortedFxCopRules) $(GenerateAnalyzerRulesMissingDocumentationFile)' />
+          Command='"$(DotNetExecutable)" "$(_GenerateDocumentationAndConfigFilesPath)" "-validateOnly:true" "$(_GeneratedRulesetsDir)" "$(_GeneratedEditorconfigsDir)" "$(ArtifactsBinDir)" "$(Configuration)" "%(AnalyzerRulesetAssembly.TargetFramework)" "@(AnalyzerRulesetAssembly)" "$(PackagePropsFileDir)" "$(PackagePropsFileName)" "$(DisableNETAnalyzersPackagePropsFileName)" "$(AnalyzerSarifFileDir)" "$(AnalyzerDocumentationFileName)" "$(AnalyzerSarifFileDir)" "$(AnalyzerSarifFileName)" "$(VersionPrefix)" $(NuspecPackageId) $(ContainsPortedFxCopRules) $(GenerateAnalyzerRulesMissingDocumentationFile)' />
 
-    <Exec Command='"$(DotNetRoot)dotnet.exe" "$(_GenerateDocumentationAndConfigFilesPath)" "-validateOnly:false" "$(_GeneratedRulesetsDir)" "$(_GeneratedEditorconfigsDir)" "$(ArtifactsBinDir)\" "$(Configuration)" "%(AnalyzerRulesetAssembly.TargetFramework)" "@(AnalyzerRulesetAssembly)" "$(PackagePropsFileDir)" "$(PackagePropsFileName)" "$(DisableNETAnalyzersPackagePropsFileName)" "$(AnalyzerSarifFileDir)" "$(AnalyzerDocumentationFileName)" "$(AnalyzerSarifFileDir)" "$(AnalyzerSarifFileName)" "$(VersionPrefix)" $(NuspecPackageId) $(ContainsPortedFxCopRules) $(GenerateAnalyzerRulesMissingDocumentationFile)' />
+    <Exec Command='"$(DotNetExecutable)" "$(_GenerateDocumentationAndConfigFilesPath)" "-validateOnly:false" "$(_GeneratedRulesetsDir)" "$(_GeneratedEditorconfigsDir)" "$(ArtifactsBinDir)" "$(Configuration)" "%(AnalyzerRulesetAssembly.TargetFramework)" "@(AnalyzerRulesetAssembly)" "$(PackagePropsFileDir)" "$(PackagePropsFileName)" "$(DisableNETAnalyzersPackagePropsFileName)" "$(AnalyzerSarifFileDir)" "$(AnalyzerDocumentationFileName)" "$(AnalyzerSarifFileDir)" "$(AnalyzerSarifFileName)" "$(VersionPrefix)" $(NuspecPackageId) $(ContainsPortedFxCopRules) $(GenerateAnalyzerRulesMissingDocumentationFile)' />
 
     <MSBuild Projects="$(RepoRoot)src\Tools\GenerateGlobalAnalyzerConfigs\GenerateGlobalAnalyzerConfigs.csproj" Targets="Build">
       <Output TaskParameter="TargetOutputs" PropertyName="_GenerateGlobalAnalyzerConfigsPath"/>
     </MSBuild>
 
-    <Exec Command='"$(DotNetRoot)dotnet.exe" "$(_GenerateGlobalAnalyzerConfigsPath)" "$(_GeneratedGlobalAnalyzerConfigsDir)" "$(NuspecPackageId)" "$(PackageTargetsFileDir)" "$(PackageTargetsFileName)" "@(AnalyzerRulesetAssembly)" "$(ArtifactsBinDir)\" "$(Configuration)" "%(AnalyzerRulesetAssembly.TargetFramework)" "$(ReleaseTrackingOptOut)"' />
+    <Exec Command='"$(DotNetExecutable)" "$(_GenerateGlobalAnalyzerConfigsPath)" "$(_GeneratedGlobalAnalyzerConfigsDir)" "$(NuspecPackageId)" "$(PackageTargetsFileDir)" "$(PackageTargetsFileName)" "@(AnalyzerRulesetAssembly)" "$(ArtifactsBinDir)" "$(Configuration)" "%(AnalyzerRulesetAssembly.TargetFramework)" "$(ReleaseTrackingOptOut)"' />
 
     <ItemGroup Condition="Exists('$(PackageTargetsFileDir)\$(PackageTargetsFileName)')">
       <AnalyzerNupkgFile Include="$(PackageTargetsFileDir)\$(PackageTargetsFileName)"/>
     </ItemGroup>
+  </Target>
+
+  <Target Name="BuildLocalGenerateAnalyzerNuspecTask"
+          BeforeTargets="GenerateAnalyzerNuspecFile">
+    <MSBuild Projects="$(MSBuildThisFileDirectory)\tasks\tasks.proj"
+             Targets="BuildAndRestoreIncrementally"/>
   </Target>
   
   <Target Name="GenerateAnalyzerNuspecFile"
           BeforeTargets="GenerateNuspec"
           DependsOnTargets="InitializeSourceControlInformation;GenerateAnalyzerConfigAndDocumentationFiles" 
           Condition="'@(AnalyzerNupkgFile)' != '' or '@(AnalyzerNupkgFolder)' != '' or '@(AnalyzerNupkgAssembly)' != '' or '@(AnalyzerNupkgDependency)' != '' or '@(AnalyzerNupkgLibrary)' != ''">
+
+
     <ItemGroup>
       <_NuspecMetadata Include="version=$(PackageVersion)" />
       <_NuspecMetadata Include="id=$(NuspecPackageId)" />
@@ -131,13 +144,29 @@
       <_NuspecMetadata Include="repositoryUrl=$(PrivateRepositoryUrl)" />
     </ItemGroup>
 
-    <PropertyGroup>
-      <_CscToolPath>$(RoslynTargetsPath)</_CscToolPath>
-      <_CscToolPath Condition="'$(_CscToolPath)' == ''">$(CscToolPath)</_CscToolPath>
-      <_CscToolPath Condition="'$(_CscToolPath)' == ''">$(MSBuildBinPath)\Roslyn</_CscToolPath>
-      <_CscToolPath Condition="!HasTrailingSlash('$(_CscToolPath)')">$(_CscToolPath)\</_CscToolPath>
-    </PropertyGroup>
+    <UsingTask TaskName="GenerateAnalyzerNuspec" AssemblyFile="$(CustomTasksAssemblyFile)" />
 
-    <Exec Command='"$(_CscToolPath)csi.exe" "$(RepoRoot)eng\GenerateAnalyzerNuspec.csx" "$(NuspecFile)" "$(AssetsDir)\" "$(MSBuildProjectDirectory)" "$(Configuration)" "$(TargetFrameworksForPackage)" "@(_NuspecMetadata)" "@(AnalyzerNupkgFile)" "@(AnalyzerNupkgFolder)" "@(AnalyzerNupkgAssembly)" "@(AnalyzerNupkgDependency)" "@(AnalyzerNupkgLibrary)" "$(_GeneratedRulesetsDir)" "$(_GeneratedEditorconfigsDir)" "@(AnalyzerLegacyRuleset)" "$(ArtifactsBinDir)\" "$(AnalyzerDocumentationFileDir)" "$(AnalyzerDocumentationFileName)" "$(AnalyzerSarifFileDir)" "$(AnalyzerSarifFileName)" "$(AnalyzerConfigurationFileDir)" "$(AnalyzerConfigurationFileName)" "$(_GeneratedGlobalAnalyzerConfigsDir)"' />
+    <GenerateAnalyzerNuspec NuspecFile="$(NuspecFile)"
+                            AssetsDir="$(AssetsDir)\"
+                            MSBuildProjectDirectory="$(MSBuildProjectDirectory)"
+                            Configuration="$(Configuration)"
+                            TargetFrameworksForPackage="$(TargetFrameworksForPackage)"
+                            NuspecMetadata="@(_NuspecMetadata)"
+                            AnalyzerNupkgFile="@(AnalyzerNupkgFile)"
+                            AnalyzerNupkgFolder="@(AnalyzerNupkgFolder)"
+                            AnalyzerNupkgAssembly="@(AnalyzerNupkgAssembly)"
+                            AnalyzerNupkgDependency="@(AnalyzerNupkgDependency)"
+                            AnalyzerNupkgLibrary="@(AnalyzerNupkgLibrary)"
+                            GeneratedRulesetsDir="$(_GeneratedRulesetsDir)"
+                            GeneratedEdirotconfigsDir="$(_GeneratedEditorconfigsDir)"
+                            AnalyzerLegacyRuleset="@(AnalyzerLegacyRuleset)"
+                            ArtifactsBinDir="$(ArtifactsBinDir)\"
+                            AnalyzerDocumentationFileDir="$(AnalyzerDocumentationFileDir)"
+                            AnalzyerDocumetnationFileName="$(AnalyzerDocumentationFileName)"
+                            AnalyzerSarifFileDir="$(AnalyzerSarifFileDir)"
+                            AnalyzerSarifFileName="$(AnalyzerSarifFileName)"
+                            AnalyzerConfigurationFileDir="$(AnalyzerConfigurationFileDir)"
+                            AnalyzerConfigurationFileName="$(AnalyzerConfigurationFileName)"
+                            GeneratedGlobalAnalyzerConfigsDir="$(_GeneratedGlobalAnalyzerConfigsDir)" />
   </Target>
 </Project>

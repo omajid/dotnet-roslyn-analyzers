@@ -15,6 +15,17 @@
     <UsingToolNuGetRepack>true</UsingToolNuGetRepack>
     <UsingToolSymbolUploader>true</UsingToolSymbolUploader>
     <UsingToolNetFrameworkReferenceAssemblies>true</UsingToolNetFrameworkReferenceAssemblies>
+    <!--
+       These are used as reference assemblies only, so they must not take a ProdCon/source-build
+       version. Insert "RefOnly" to avoid assignment via PVP.
+    -->
+    <RefOnlyMicrosoftBuildVersion>15.7.179</RefOnlyMicrosoftBuildVersion>
+    <RefOnlyMicrosoftBuildFrameworkVersion>$(RefOnlyMicrosoftBuildVersion)</RefOnlyMicrosoftBuildFrameworkVersion>
+    <RefOnlyMicrosoftBuildTasksCoreVersion>$(RefOnlyMicrosoftBuildVersion)</RefOnlyMicrosoftBuildTasksCoreVersion>
+    <RefOnlyMicrosoftBuildUtilitiesCoreVersion>$(RefOnlyMicrosoftBuildVersion)</RefOnlyMicrosoftBuildUtilitiesCoreVersion>
+    <RefOnlyNugetProjectModelVersion>4.9.4</RefOnlyNugetProjectModelVersion>
+    <RefOnlyNugetPackagingVersion>4.9.4</RefOnlyNugetPackagingVersion>
+    <MicrosoftExtensionsDependencyModelVersion>3.1.0</MicrosoftExtensionsDependencyModelVersion>
     <!-- Toolset -->
     <MicrosoftVSSDKBuildToolsVersion>16.5.2044</MicrosoftVSSDKBuildToolsVersion>
     <MicrosoftVSSDKVSDConfigToolVersion>16.0.2032702</MicrosoftVSSDKVSDConfigToolVersion>

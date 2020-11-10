@@ -1,28 +1,107 @@
+using Microsoft.Build.Framework;
+using Microsoft.Build.Utilities;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Text;
 
-string nuspecFile = Args[0];
-string assetsDir = Args[1];
-string projectDir = Args[2];
-string configuration = Args[3];
-string[] tfms = Args[4].Split(';');
-var metadataList = Args[5].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-var fileList = Args[6].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-var folderList = Args[7].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-var assemblyList = Args[8].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-var dependencyList = Args[9].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-var libraryList = Args[10].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-var rulesetsDir = Args[11];
-var editorconfigsDir = Args[12];
-var legacyRulesets = Args[13].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-var artifactsBinDir = Args[14];
-var analyzerDocumentationFileDir = Args[15];
-var analyzerDocumentationFileName = Args[16];
-var analyzerSarifFileDir = Args[17];
-var analyzerSarifFileName = Args[18];
-var analyzerConfigurationFileDir = Args[19];
-var analyzerConfigurationFileName = Args[20];
-var globalAnalyzerConfigsDir = Args[21];
+namespace GenerateAnalyzerNuspec
+{
+    public class GenerateAnalyzerNuspec: Task
+    {
+        [Required]
+        public string NuspecFile { get; set; }
+
+        [Required]
+        public string AssetsDir { get; set; }
+
+        [Required]
+        public string MSBuildProjectDirectory { get; set; }
+
+        [Required]
+        public string Configuration { get; set; }
+
+        [Required]
+        public string TargetFrameworksForPackage { get; set; }
+
+        [Required]
+        public string[] NuspecMetadata { get; set; }
+
+        [Required]
+        public string[] AnalyzerNupkgFile { get; set; }
+
+        [Required]
+        public string[] AnalyzerNupkgFolder { get; set; }
+
+        [Required]
+        public string[] AnalyzerNupkgAssembly { get; set; }
+
+        [Required]
+        public string[] AnalyzerNupkgDependency { get; set; }
+
+        [Required]
+        public string[] AnalyzerNupkgLibrary { get; set; }
+
+        [Required]
+        public string GeneratedRulesetsDir { get; set; }
+
+        [Required]
+        public string GeneratedEditorconfigsDir { get; set; }
+
+        [Required]
+        public string[] AnalyzerLegacyRuleset { get; set; }
+
+        [Required]
+        public string ArtifactsBinDir { get; set; }
+
+        [Required]
+        public string AnalyzerDocumentationFileDir { get; set; }
+
+        [Required]
+        public string AnalyzerDocumentationFileName { get; set; }
+
+        [Required]
+        public string AnalyzerSarifFileDir { get; set; }
+
+        [Required]
+        public string AnalyzerSarifFileName { get; set; }
+
+        [Required]
+        public string AnalyzerConfigurationFileDir { get; set; }
+
+        [Required]
+        public string AnalyzerConfigurationFileName { get; set; }
+
+        [Required]
+        public string GeneratedGlobalAnalyzerConfigsDir { get; set; }
+
+        public override void Execute()
+        {
+
+string nuspecFile = this.NuspecFile;
+string assetsDir = this.AssetsDir;
+string projectDir = this.MSBuildProjectDirectory;
+string configuration = this.Configuration;
+string[] tfms = this.TargetFrameworksForPackage.Split(';');
+var metadataList = this.NuspecMetadata;
+var fileList = this.AnalyzerNupkgFile;
+var folderList = this.AnalyzerNupkgFolder;
+var assemblyList = this.AnalyzerNupkgAssembly;
+var dependencyList = this.AnalyzerNupkgDependency;
+var libraryList = this.Analzyer.NupkgLibrary;
+var rulesetsDir = this.GeneratedRulesetsDir;
+var editorconfigsDir = this.GeneratedEditorconfigsDir;
+var legacyRulesets = this.AnalyzerLegacyRuleset;
+var artifactsBinDir = this.ArtifactsBinDir;
+var analyzerDocumentationFileDir = this.AnalzyerDocumentationFileDir;
+var analyzerDocumentationFileName = this.AnalzyerDocumentationFileName;
+var analyzerSarifFileDir = this.AnalyzerSarifFileDir;
+var analyzerSarifFileName = this.AnalzyerSarifFilName;
+var analyzerConfigurationFileDir = this.AnalzyerConfigurationFileDir;
+var analyzerConfigurationFileName = this.AnalzyerConfiguerationFileName;
+var globalAnalyzerConfigsDir = this.GeneratedGlobalAnalzyerConfigsDir;
 
 var result = new StringBuilder();
 
@@ -281,3 +360,7 @@ result.AppendLine(@"  </files>");
 result.AppendLine(@"</package>");
 
 File.WriteAllText(nuspecFile, result.ToString());
+
+        }
+    }
+}
